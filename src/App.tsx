@@ -118,13 +118,13 @@ export const App: React.FC = () => {
     }
 
     setTempTodo({
-      title,
+      title: title.trim(),
       id: Math.random(),
       completed: false,
       userId: USER_ID,
     });
 
-    addTodo({ title, completed: false, userId: USER_ID })
+    addTodo({ title: title.trim(), completed: false, userId: USER_ID })
       .then(data => {
         setTodos(prevTodos => [...prevTodos, { ...data }]);
         setTitle('');
