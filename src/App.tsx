@@ -46,13 +46,6 @@ export const App: React.FC = () => {
     }
   }, [todos]);
 
-  useEffect(() => {
-    if (countOfCompTodos) {
-      // console.log(countOfCompTodos, 'countOfCompTodos app');
-      // console.log(todos.length, 'lengthOfTodos')
-    }
-  }, [countOfCompTodos]);
-
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
@@ -141,10 +134,11 @@ export const App: React.FC = () => {
     setProcessings((prevProcessings: number[]) => [...prevProcessings, todoId]);
 
     deleteTodo(todoId)
-      .then(() => {
-        fetchTodos();
-      })
-      .catch(() => handleError(ErrorMessages.UnableToDelete));
+      .then(() =>
+        setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId)),
+      )
+      .catch(() => handleError(ErrorMessages.UnableToDelete))
+      .finally(() => setTimeout(() => inputRef.current?.focus(), 0))
   };
 
   const clearCompletedTodos = () => {
@@ -165,7 +159,7 @@ export const App: React.FC = () => {
     todos.map((todo: Todo) => {
       if (todo.completed === !atLeastOneCompletedTodo) {
         updateTodo(todo.id, { ...todo, completed: atLeastOneCompletedTodo })
-          .then(res => {
+          .then(() => {
             fetchTodos();
           })
           .catch(() => handleError(ErrorMessages.UnableToUpdate));
