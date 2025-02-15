@@ -1,4 +1,11 @@
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import React, {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   addTodo,
   deleteTodo,
@@ -138,7 +145,7 @@ export const App: React.FC = () => {
         setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId)),
       )
       .catch(() => handleError(ErrorMessages.UnableToDelete))
-      .finally(() => setTimeout(() => inputRef.current?.focus(), 0))
+      .finally(() => setTimeout(() => inputRef.current?.focus(), 0));
   };
 
   const clearCompletedTodos = () => {
@@ -158,22 +165,31 @@ export const App: React.FC = () => {
 
     todos.map((todo: Todo) => {
       if (todo.completed === !atLeastOneCompletedTodo) {
-        updateTodo(todo.id, { ...todo, completed: atLeastOneCompletedTodo })
-          .then(() => {
-            fetchTodos();
-          })
-          .catch(() => handleError(ErrorMessages.UnableToUpdate));
+        handleUpdateTodo(todo, true, atLeastOneCompletedTodo);
       }
     });
   };
 
-  const handleUpdateTodo = (todo: Todo) => {
-    updateTodo(todo.id, { ...todo, completed: !todo.completed })
-      .then(res => {
-        fetchTodos();
-      })
-      .catch(() => handleError(ErrorMessages.UnableToUpdate));
-  };
+  const handleUpdateTodo = useCallback(
+    (
+      todo: Todo,
+      toggleOn: boolean = false,
+      atLeastOneCompletedTodo: boolean = false,
+    ) => {
+      !toggleOn && setProcessings(prev => [...prev, todo.id]);
+
+      updateTodo(
+        todo.id,
+        toggleOn ? { ...todo, completed: atLeastOneCompletedTodo } : todo,
+      )
+        .then(() => fetchTodos())
+        .catch(() => handleError(ErrorMessages.UnableToUpdate))
+        .finally(() =>
+          setProcessings(prev => prev.filter(id => id !== todo.id)),
+        );
+    },
+    [updateTodo],
+  );
 
   return (
     <div className="todoapp">
