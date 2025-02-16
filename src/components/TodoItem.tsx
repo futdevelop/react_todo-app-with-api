@@ -60,7 +60,12 @@ const TodoItem: React.FC<Props> = ({
   };
 
   return (
-    <div data-cy="Todo" className={`todo ${todo.completed && 'completed'}`}>
+    <div
+      data-cy="Todo"
+      className={classNames('todo', { 
+        'completed': todo.completed
+       })}
+    >
       <label className="todo__status-label" htmlFor={`todo-${todo.id}`}>
         <input
           id={`todo-${todo.id}`}
