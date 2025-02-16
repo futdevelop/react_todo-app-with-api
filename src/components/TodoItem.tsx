@@ -56,6 +56,7 @@ const TodoItem: React.FC<Props> = ({
     }
   };
 
+
   return (
     <div data-cy="Todo" className={`todo ${todo.completed && 'completed'}`}>
       <label className="todo__status-label" htmlFor={`todo-${todo.id}`}>
