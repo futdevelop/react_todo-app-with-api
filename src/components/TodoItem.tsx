@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Todo } from '../types/Todo';
+import classNames from 'classnames';
 
 type Props = {
   todo: Todo;
@@ -31,11 +32,13 @@ const TodoItem: React.FC<Props> = ({
 
     if (trimmedTitle === todo.title) {
       setIsEditing(false);
+
       return;
     }
 
     if (!trimmedTitle) {
       handleDeleteTodo && handleDeleteTodo(todo.id);
+
       return;
     }
 
@@ -55,7 +58,6 @@ const TodoItem: React.FC<Props> = ({
       setIsEditing(false);
     }
   };
-
 
   return (
     <div data-cy="Todo" className={`todo ${todo.completed && 'completed'}`}>
@@ -103,10 +105,11 @@ const TodoItem: React.FC<Props> = ({
         </button>
       )}
 
-      {/* overlay will cover the todo while it is being deleted or updated */}
       <div
         data-cy="TodoLoader"
-        className={`modal overlay ${isProcessed || tempTodo && 'is-active'}`}
+        className={classNames('modal overlay', {
+          'is-active': isProcessed || tempTodo,
+        })}
       >
         <div className="modal-background has-background-white-ter" />
         <div className="loader" />

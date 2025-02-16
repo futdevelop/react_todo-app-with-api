@@ -8,7 +8,7 @@ type Props = {
   processings: number[];
   handleDeleteTodo: (todoId: number) => void;
   tempTodo: Todo | null | undefined;
-  updateTodo: (todo: Todo) => void
+  updateTodo: (todo: Todo) => void;
 };
 
 const TodoList: React.FC<Props> = ({
@@ -16,7 +16,7 @@ const TodoList: React.FC<Props> = ({
   processings,
   handleDeleteTodo,
   tempTodo,
-  updateTodo
+  updateTodo,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -27,14 +27,18 @@ const TodoList: React.FC<Props> = ({
               todo={todo}
               isProcessed={processings.includes(todo.id)}
               handleDeleteTodo={() => handleDeleteTodo(todo.id)}
-              updateTodo={(gotTodo) => updateTodo(gotTodo)}
+              updateTodo={gotTodo => updateTodo(gotTodo)}
             />
           </CSSTransition>
         ))}
 
         {tempTodo && (
           <CSSTransition key={0} timeout={300} classNames="temp-item">
-            <TodoItem todo={tempTodo} isProcessed updateTodo={(todo) => updateTodo(todo)} />
+            <TodoItem
+              todo={tempTodo}
+              isProcessed
+              updateTodo={todo => updateTodo(todo)}
+            />
           </CSSTransition>
         )}
       </TransitionGroup>
