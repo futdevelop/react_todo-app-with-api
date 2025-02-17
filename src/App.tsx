@@ -40,7 +40,9 @@ export const App: React.FC = () => {
   const [tempTodo, setTempTodo] = useState<Todo | null>();
   const [processings, setProcessings] = useState<number[]>([]);
 
-  const [countOfCompTodos, setCountOfCompTodos] = useState(0);
+  const [count, setCount] = useState(0);
+
+  let itemsLeft: number = todos.length - count;
 
   useEffect(() => {
     if (todos) {
@@ -48,9 +50,15 @@ export const App: React.FC = () => {
         (todo: Todo) => todo.completed,
       );
 
-      setCountOfCompTodos(filteredTodosByCompletion.length);
+      setCount(filteredTodosByCompletion.length);
+
+      itemsLeft = todos.length - count;
     }
   }, [todos]);
+
+  useEffect(() => {
+    console.log(count, 'count');
+  }, [count]);
 
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -98,8 +106,6 @@ export const App: React.FC = () => {
   const handleTitleChange = (ch: string) => setTitle(ch);
 
   const deleteErrorMessage = () => setErrorMessage('');
-
-  const itemsLeft = todos.length - countOfCompTodos;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -154,7 +160,7 @@ export const App: React.FC = () => {
       }
     });
 
-    setCountOfCompTodos(0);
+    setCount(0);
   };
 
   const toggleTodosStatus = () => {
@@ -200,7 +206,7 @@ export const App: React.FC = () => {
           disabledTitle={disabledTitle}
           title={title}
           handleTitleChange={handleTitleChange}
-          allTodosCompleted={todos.length === countOfCompTodos}
+          allTodosCompleted={todos.length === count}
           toggleTodosStatus={toggleTodosStatus}
         />
 
@@ -214,7 +220,7 @@ export const App: React.FC = () => {
 
         {todos.length > 0 && (
           <Footer
-            countOfCompTodos={countOfCompTodos}
+            countOfCompTodos={count}
             itemsLeft={itemsLeft}
             selectedFilter={selectedFilter}
             handleSelectedFilter={handleSelectedFilter}
