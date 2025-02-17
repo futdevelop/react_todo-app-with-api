@@ -1,119 +1,143 @@
-import React, { useState, useEffect, useRef } from 'react';
+/* eslint-disable jsx-a11y/label-has-associated-control */
+/* eslint-disable jsx-a11y/control-has-associated-label */
+import React, { useState, useRef, useEffect } from 'react';
 import { Todo } from '../types/Todo';
 import classNames from 'classnames';
+import { USER_ID } from '../api/todos';
 
-type Props = {
+interface TodoItemProps {
   todo: Todo;
-  handleDeleteTodo?: (todoId: number) => void;
-  isProcessed: boolean;
-  tempTodo?: boolean;
-  updateTodo: (todo: Todo) => void;
-};
+  loading: boolean;
+  isActive: number | null;
+  setIsActive: (id: number | null) => void;
+  onDelete: (id: number) => void;
+  onToggle: (updatedTodo: Todo) => void;
+  handleEditTodoTitle: (id: number, title: string) => void;
+}
 
-const TodoItem: React.FC<Props> = ({
-  todo,
-  handleDeleteTodo,
-  isProcessed,
-  tempTodo,
-  updateTodo,
+export const TodoItem: React.FC<TodoItemProps> = ({
+  todo: { id, title, completed },
+  loading,
+  isActive,
+  setIsActive,
+  onDelete,
+  onToggle,
+  handleEditTodoTitle,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(todo.title);
+  const [editTitle, setEditTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
-    }
-  }, [isEditing]);
-
-  const handleSave = () => {
-    const trimmedTitle = editTitle.trim();
-
-    if (trimmedTitle === todo.title) {
-      setIsEditing(false);
-
-      return;
-    }
-
-    if (!trimmedTitle) {
-      handleDeleteTodo && handleDeleteTodo(todo.id);
-
-      return;
-    }
-
-    updateTodo({ ...todo, title: trimmedTitle });
-    setIsEditing(false);
+  const handleStatusChange = () => {
+    onToggle({ id, title, completed: !completed, userId: USER_ID });
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEditTitle(event.target.value);
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSave();
-    } else if (event.key === 'Escape') {
-      setEditTitle(todo.title);
-      setIsEditing(false);
+  const handleKeyUp = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setIsActive(null);
     }
   };
+
+  //#region Title Submit
+  const handleBlur = () => {
+    if (editTitle.trim() === '') {
+      onDelete(id);
+
+      return;
+    }
+
+    if (title === editTitle) {
+      setIsActive(null);
+
+      return;
+    }
+
+    handleEditTodoTitle(id, editTitle.trim());
+  };
+
+  const handleEditSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    handleBlur();
+  };
+  //#endregion
+
+  const handleDoubleClick = () => {
+    setIsActive(id);
+    setEditTitle(title);
+  };
+
+  useEffect(() => {
+    if (isActive === id && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isActive, id]);
 
   return (
     <div
       data-cy="Todo"
-      className={classNames('todo', { 
-        'completed': todo.completed
-       })}
+      className={classNames('todo', {
+        completed: completed,
+      })}
+      key={id}
     >
-      <label className="todo__status-label" htmlFor={`todo-${todo.id}`}>
+      <label className="todo__status-label">
         <input
-          id={`todo-${todo.id}`}
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          checked={todo.completed}
-          onChange={() => updateTodo({ ...todo, completed: !todo.completed })}
+          checked={completed}
+          onChange={handleStatusChange}
+          disabled={loading}
         />
-        <span className="visually-hidden">Mark as completed</span>
       </label>
 
-      {isEditing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          value={editTitle}
-          onChange={handleChange}
-          className="todo__input"
-          data-cy="TodoInput"
-          onBlur={handleSave}
-          onKeyDown={handleKeyDown}
-        />
+      {id === isActive ? (
+        <form onSubmit={handleEditSubmit}>
+          <input
+            ref={inputRef}
+            data-cy="TodoTitleField"
+            type="text"
+            className="todo__title-field"
+            placeholder="Empty todo will be deleted"
+            value={editTitle}
+            onChange={handleTitleChange}
+            onBlur={handleBlur}
+            onKeyUp={handleKeyUp}
+            disabled={loading}
+          />
+        </form>
       ) : (
-        <span
-          data-cy="TodoTitle"
-          className="todo__title"
-          onDoubleClick={() => setIsEditing(true)}
-        >
-          {todo.title}
-        </span>
+        <>
+          <span
+            data-cy="TodoTitle"
+            className="todo__title"
+            onDoubleClick={handleDoubleClick}
+          >
+            {title}
+          </span>
+
+          {/* Remove button appears only on hover */}
+          <button
+            type="button"
+            className="todo__remove"
+            data-cy="TodoDelete"
+            onClick={() => onDelete(id)}
+            disabled={loading}
+          >
+            ×
+          </button>
+        </>
       )}
 
-      {!isEditing && (
-        <button
-          type="button"
-          className="todo__remove"
-          data-cy="TodoDelete"
-          onClick={() => handleDeleteTodo && handleDeleteTodo(todo.id)}
-        >
-          ×
-        </button>
-      )}
-
+      {/* overlay will cover the todo while it is being deleted or updated */}
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isProcessed || tempTodo,
+          'is-active': loading,
         })}
       >
         <div className="modal-background has-background-white-ter" />
@@ -122,5 +146,3 @@ const TodoItem: React.FC<Props> = ({
     </div>
   );
 };
-
-export default React.memo(TodoItem);

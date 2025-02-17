@@ -1,49 +1,54 @@
 import React from 'react';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import TodoItem from './TodoItem';
 import { Todo } from '../types/Todo';
+import { TodoItem } from './TodoItem';
 
-type Props = {
-  visibleTodos: Todo[];
-  processings: number[];
-  handleDeleteTodo: (todoId: number) => void;
-  tempTodo: Todo | null | undefined;
-  updateTodo: (todo: Todo) => void;
-};
+interface TodoListProps {
+  filteredTodos: Todo[];
+  loadingTodos: Record<number, boolean>;
+  isActive: number | null;
+  setIsActive: (id: number | null) => void;
+  onDelete: (id: number) => void;
+  tempTodo: Todo | null;
+  onToggle: (updatedTodo: Todo) => void;
+  handleEditTodoTitle: (id: number, title: string) => void;
+}
 
-const TodoList: React.FC<Props> = ({
-  visibleTodos,
-  processings,
-  handleDeleteTodo,
+export const TodoList: React.FC<TodoListProps> = ({
+  filteredTodos,
+  loadingTodos,
+  isActive,
+  setIsActive,
+  onDelete,
   tempTodo,
-  updateTodo,
+  onToggle,
+  handleEditTodoTitle,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      <TransitionGroup>
-        {visibleTodos.map(todo => (
-          <CSSTransition key={todo.id} timeout={300} classNames="item">
-            <TodoItem
-              todo={todo}
-              isProcessed={processings.includes(todo.id)}
-              handleDeleteTodo={() => handleDeleteTodo(todo.id)}
-              updateTodo={gotTodo => updateTodo(gotTodo)}
-            />
-          </CSSTransition>
-        ))}
-
-        {tempTodo && (
-          <CSSTransition key={0} timeout={300} classNames="temp-item">
-            <TodoItem
-              todo={tempTodo}
-              isProcessed
-              updateTodo={todo => updateTodo(todo)}
-            />
-          </CSSTransition>
-        )}
-      </TransitionGroup>
+      {filteredTodos.map(todo => (
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+          loading={!!loadingTodos[todo.id]}
+          isActive={isActive}
+          setIsActive={setIsActive}
+          onDelete={onDelete}
+          onToggle={onToggle}
+          handleEditTodoTitle={handleEditTodoTitle}
+        />
+      ))}
+      {tempTodo && (
+        <TodoItem
+          key={tempTodo.id}
+          todo={tempTodo}
+          loading={true}
+          isActive={isActive}
+          setIsActive={setIsActive}
+          onDelete={onDelete}
+          onToggle={onToggle}
+          handleEditTodoTitle={handleEditTodoTitle}
+        />
+      )}
     </section>
   );
 };
-
-export default TodoList;
