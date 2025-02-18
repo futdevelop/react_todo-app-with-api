@@ -1,13 +1,13 @@
-// import { event } from 'cypress/types/jquery';
 import classNames from 'classnames';
 import React, { useState } from 'react';
+import { TodoErrors } from '../App';
 
 interface HeaderProps {
   loading: boolean;
-  isInputDisabled: boolean;
-  todosLeft: number;
+  isTitleDisabled: boolean;
+  itemsLeft: number;
   onSubmit: (title: string) => Promise<void>;
-  setErrorMessage: (message: string) => void;
+  setErrorMessage: (message: TodoErrors) => void;
   inputRef: React.RefObject<HTMLInputElement>;
   onToggleAll: () => void;
   todosLength: number;
@@ -15,8 +15,8 @@ interface HeaderProps {
 
 export const TodoHeader: React.FC<HeaderProps> = ({
   loading,
-  isInputDisabled,
-  todosLeft,
+  isTitleDisabled,
+  itemsLeft,
   onSubmit,
   setErrorMessage,
   inputRef,
@@ -25,37 +25,27 @@ export const TodoHeader: React.FC<HeaderProps> = ({
 }) => {
   const [title, setTitle] = useState('');
 
-  // #region reset
-  const reset = () => {
-    setTitle('');
-  };
-  // #endregion
-
-  // #region handler
-  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // ! handler
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setTitle(event.target.value);
-  };
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (title.trim().length === 0) {
-      setErrorMessage('Title should not be empty');
+      setErrorMessage(TodoErrors.EmptyTitle);
     } else {
-      onSubmit(title.trim()).then(reset);
+      onSubmit(title.trim()).then(() => setTitle(''));
     }
   };
-  // #endregion
-
-  const toggleAllVisible = todosLength > 0;
 
   return (
     <header className="todoapp__header">
-      {toggleAllVisible && (
+      {todosLength > 0 && (
         <button
           type="button"
           className={classNames('todoapp__toggle-all', {
-            active: todosLeft === 0,
+            active: itemsLeft === 0,
           })}
           data-cy="ToggleAllButton"
           disabled={loading}
@@ -72,7 +62,7 @@ export const TodoHeader: React.FC<HeaderProps> = ({
           value={title}
           onChange={handleTitleChange}
           ref={inputRef}
-          disabled={loading || isInputDisabled}
+          disabled={isTitleDisabled || loading}
         />
       </form>
     </header>

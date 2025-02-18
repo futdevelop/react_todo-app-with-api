@@ -8,40 +8,34 @@ import { USER_ID } from '../api/todos';
 interface TodoItemProps {
   todo: Todo;
   loading: boolean;
-  isActive: number | null;
-  setIsActive: (id: number | null) => void;
+  isActiveTodo: number | null;
+  setIsActiveTodo: (id: number | null) => void;
   onDelete: (id: number) => void;
   onToggle: (updatedTodo: Todo) => void;
-  handleEditTodoTitle: (id: number, title: string) => void;
+  handleEditTitle: (id: number, title: string) => void;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
   todo: { id, title, completed },
   loading,
-  isActive,
-  setIsActive,
+  isActiveTodo,
+  setIsActiveTodo,
   onDelete,
   onToggle,
-  handleEditTodoTitle,
+  handleEditTitle,
 }) => {
   const [editTitle, setEditTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleStatusChange = () => {
+  const handleStatusChange = () =>
     onToggle({ id, title, completed: !completed, userId: USER_ID });
-  };
 
-  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setEditTitle(event.target.value);
-  };
 
-  const handleKeyUp = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      setIsActive(null);
-    }
-  };
+  const handleKeyUp = (event: React.KeyboardEvent) =>
+    event.key === 'Escape' && setIsActiveTodo(null);
 
-  //#region Title Submit
   const handleBlur = () => {
     if (editTitle.trim() === '') {
       onDelete(id);
@@ -50,31 +44,30 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     }
 
     if (title === editTitle) {
-      setIsActive(null);
+      setIsActiveTodo(null);
 
       return;
     }
 
-    handleEditTodoTitle(id, editTitle.trim());
+    handleEditTitle(id, editTitle.trim());
   };
 
-  const handleEditSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
     handleBlur();
   };
-  //#endregion
 
   const handleDoubleClick = () => {
-    setIsActive(id);
+    setIsActiveTodo(id);
     setEditTitle(title);
   };
 
   useEffect(() => {
-    if (isActive === id && inputRef.current) {
-      inputRef.current.focus();
+    if (isActiveTodo === id && inputRef.current) {
+      inputRef.current?.focus();
     }
-  }, [isActive, id]);
+  }, [isActiveTodo, id]);
 
   return (
     <div
@@ -95,7 +88,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         />
       </label>
 
-      {id === isActive ? (
+      {id === isActiveTodo ? (
         <form onSubmit={handleEditSubmit}>
           <input
             ref={inputRef}
@@ -120,7 +113,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             {title}
           </span>
 
-          {/* Remove button appears only on hover */}
           <button
             type="button"
             className="todo__remove"
@@ -133,7 +125,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         </>
       )}
 
-      {/* overlay will cover the todo while it is being deleted or updated */}
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {

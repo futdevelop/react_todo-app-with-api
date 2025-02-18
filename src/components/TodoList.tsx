@@ -1,54 +1,60 @@
 import React from 'react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Todo } from '../types/Todo';
 import { TodoItem } from './TodoItem';
 
 interface TodoListProps {
-  filteredTodos: Todo[];
+  visibleTodos: Todo[];
   loadingTodos: Record<number, boolean>;
-  isActive: number | null;
-  setIsActive: (id: number | null) => void;
+  isActiveTodo: number | null;
+  setIsActiveTodo: (id: number | null) => void;
   onDelete: (id: number) => void;
   tempTodo: Todo | null;
   onToggle: (updatedTodo: Todo) => void;
-  handleEditTodoTitle: (id: number, title: string) => void;
+  handleEditTitle: (id: number, title: string) => void;
 }
 
 export const TodoList: React.FC<TodoListProps> = ({
-  filteredTodos,
+  visibleTodos,
   loadingTodos,
-  isActive,
-  setIsActive,
+  isActiveTodo,
+  setIsActiveTodo,
   onDelete,
   tempTodo,
   onToggle,
-  handleEditTodoTitle,
+  handleEditTitle,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      {filteredTodos.map(todo => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          loading={!!loadingTodos[todo.id]}
-          isActive={isActive}
-          setIsActive={setIsActive}
-          onDelete={onDelete}
-          onToggle={onToggle}
-          handleEditTodoTitle={handleEditTodoTitle}
-        />
-      ))}
-      {tempTodo && (
-        <TodoItem
-          key={tempTodo.id}
-          todo={tempTodo}
-          loading={true}
-          isActive={isActive}
-          setIsActive={setIsActive}
-          onDelete={onDelete}
-          onToggle={onToggle}
-          handleEditTodoTitle={handleEditTodoTitle}
-        />
-      )}
+      <TransitionGroup>
+        {visibleTodos.map(todo => (
+          <CSSTransition key={todo.id} timeout={300} classNames="item">
+            <TodoItem
+              todo={todo}
+              loading={!!loadingTodos[todo.id]}
+              isActiveTodo={isActiveTodo}
+              setIsActiveTodo={setIsActiveTodo}
+              onDelete={onDelete}
+              onToggle={onToggle}
+              handleEditTitle={handleEditTitle}
+            />
+          </CSSTransition>
+        ))}
+
+        {tempTodo && (
+          <CSSTransition key="temp" timeout={300} classNames="temp-item">
+            <TodoItem
+              todo={tempTodo}
+              loading={true}
+              isActiveTodo={isActiveTodo}
+              setIsActiveTodo={setIsActiveTodo}
+              onDelete={onDelete}
+              onToggle={onToggle}
+              handleEditTitle={handleEditTitle}
+            />
+          </CSSTransition>
+        )}
+      </TransitionGroup>
     </section>
   );
 };

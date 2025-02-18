@@ -3,11 +3,11 @@ import { client } from '../utils/fetchClient';
 
 export const USER_ID = 2321;
 
-export const getTodos = () => {
+export const fetchTodos = () => {
   return client.get<Todo[]>(`/todos?userId=${USER_ID}`);
 };
 
-export const createTodos = (title: string) => {
+export const addTodo = (title: string) => {
   return client.post<Todo>(`/todos`, {
     title,
     userId: USER_ID,
